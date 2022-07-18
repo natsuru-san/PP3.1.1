@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import ru.natsuru.mvcboot.model.User;
+
 import java.util.List;
 
 @Component
@@ -21,13 +22,11 @@ public class UserDaoImplement implements UserDao {
     }
 
     @Override
-    @Transactional
     public void putUser(String name, String surName, int socialNumber) {
         putUser(new User(name, surName, socialNumber));
     }
 
     @Override
-    @Transactional
     public void putUser(User user) {
         manager.merge(user);
     }
@@ -39,11 +38,22 @@ public class UserDaoImplement implements UserDao {
 
     @Override
     public void updateUser(User user) {
-        manager.merge(user);
+        if (isExistUserById(user.getId())) {
+            manager.merge(user);
+        }
     }
 
     @Override
     public User pullUser(long id) {
-        return manager.find(User.class, id);
+        User user = manager.find(User.class, id);
+        if (user == null) {
+            user = new User("Not defined", "Not defined", -1);
+            user.setId(-1L);
+        }
+        return user;
+    }
+
+    private boolean isExistUserById(long id) {
+        return manager.find(User.class, id) != null;
     }
 }
